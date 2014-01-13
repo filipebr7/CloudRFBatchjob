@@ -10,12 +10,13 @@ import requests, csv, subprocess, os, urllib2, time
 # Before using you must create a CloudRF account and enter your UID and key in the relevant fields below
 # support@cloudrf.com
 
-o = urllib2.build_opener( urllib2.HTTPCookieProcessor() 
+o = urllib2.build_opener( urllib2.HTTPCookieProcessor()) 
 
 # Change before using. You will need to update the apiurl if you have purchased your own server
-uid="0" # CLOUDRF USER ID
-key="YOURAPIKEYHERE" # SHA1 HASH OF YOUR CLOUDRF PASSWORD
-apiurl="https://m.cloudrf.com/API/api.php"
+uid="?" # CLOUDRF USER ID eg. 1
+key="?" # SHA1 HASH OF YOUR CLOUDRF PASSWORD
+apiurl="https://m.cloudrf.com/API/api.php" # Public server or your own
+delay = 9 # Set to 9 for the public server or 0 if you own your own
 
 # Send job to server> Refer to cloudrf.com for API parameters.
 def calculate(ant,azi,clh,cli,col,dbm,dis,erp,fbr,fmt,frq,gry,hbw,key,lat,lon,nam,opy,out,pol,rad,res,rxh,ter,tlt,txh,uid,vbw):
@@ -24,10 +25,13 @@ def calculate(ant,azi,clh,cli,col,dbm,dis,erp,fbr,fmt,frq,gry,hbw,key,lat,lon,na
 	'lat':lat,'lon':lon,'nam':nam,'opy':opy,'out':out,'pol':pol,'rad':rad,'res':res,'rxh':rxh,
 	'ter':ter,'tlt':tlt,'txh':txh,'uid':uid,'vbw':vbw}
 	#print (args)
-	print "Calculating '"+nam+"' out to "+rad+"km at "+res+"PPD..."
+	print "Calculating '"+nam+"' for "+rad+"km  with "+res+" pixels/degree..."
 	r = requests.post(apiurl, data=args)
-	print r.text
-	download(r.text,nam)
+	if "http" in r.text:
+		download(r.text,nam)
+	else:
+		print r.text
+	
 
 # Download KMZ and launch in Google earth
 def download(file,nam):
@@ -46,20 +50,15 @@ def download(file,nam):
 	os.startfile(localFile) # Launch Google earth (if installed)
 	
 # Open CSV file
-with open('data.csv', 'rb') as csvfile:
+with open('cells.csv', 'rb') as csvfile:
 	csvdata = csv.reader(csvfile, delimiter=',')
 	for row in csvdata:
 		if row[0].isdigit(): # Ignore Header row
 			start_time = time.time() # Stopwatch start
 			calculate(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],
 			row[10],row[11],row[12],key,row[13],row[14],row[15],row[16],row[17],row[18],row[19],row[20],row[21],row[22],row[23],row[24],uid,row[25])
-			elapsed = time.time() - start_time # Stopwatch stop
+			elapsed = round(time.time() - start_time,1) # Stopwatch stop
 			print "Elapsed time: "+str(elapsed)+"s"
-			delay=1 # Minimum time between calcs is 10 seconds.
-			if row[19] < 50: # If radius is less than 50km
-				delay=5 # slow down or we might get ticked off for thrashing the server
-			if row[19] < 20: # < 20km
-				delay=8 # slow down some more...
 			time.sleep(delay)
 		
 		

@@ -7,6 +7,9 @@ Concept:
 The script reads in data from the CSV file, then performs a HTTP request to cloudrf.com for each row.
 The result is a link to a KMZ file which the script downloads and launches in Google earth.
 
+API reference:
+The entire API is available at http://cloudrf.com/api
+
 Support:
 Get help at cloudrf.com or email support@cloudrf.com
  

@@ -1,37 +1,33 @@
 #!/usr/bin/python
-import requests, csv, subprocess, os, urllib2, time
-
+import requests, csv, subprocess, os, urllib2, time, sys
 # CloudRF API client script Copyright 2013 Farrant Consulting Ltd
-# Permission is given to do what you want with this.
 #
 # Reads in radio transmitter data from data.csv and creates a propagation KMZ for each row
 # Once complete, it will download the KMZ and launch it with Google earth
-# The CSV file MUST be formatted according to the example.
-# Before using you must create a CloudRF account and enter your UID and key in the relevant fields below
+# The CSV file MUST be formatted according to the example!
+# Before using you must create a CloudRF account and enter your UID and password in the relevant fields below
 # support@cloudrf.com
+
+# ENTER YOUR API KEY AND UID FROM CLOUDRF.COM HERE:
+uid="" # CLOUDRF UID 
+key="" # CLOUDRF API KEY
+apiurl="https://m.cloudrf.com/API/api.php" # Public server 
+delay = 8 # Set to >8 for the public server or 0 if you own your own
+# DO NOT EDIT BELOW HERE
 
 o = urllib2.build_opener( urllib2.HTTPCookieProcessor()) 
 
-# Change before using. You will need to update the apiurl if you have purchased your own server
-uid="?" # CLOUDRF USER ID eg. 1
-key="?" # SHA1 HASH OF YOUR CLOUDRF PASSWORD
-apiurl="https://m.cloudrf.com/API/api.php" # Public server or your own
-delay = 9 # Set to 9 for the public server or 0 if you own your own
-
-# Send job to server> Refer to cloudrf.com for API parameters.
-def calculate(ant,azi,clh,cli,col,dbm,dis,erp,fbr,fmt,frq,gry,hbw,key,lat,lon,nam,opy,out,pol,rad,res,rxh,ter,tlt,txh,uid,vbw):
-	args = {'ant': ant, 'azi': azi, 'clh': clh, 'cli': cli,'col': col,'dbm':dbm,
-	'dis':dis,'erp':erp,'fbr':fbr,'fmt':fmt,'frq':frq,'gry':gry,'hbw':hbw,'key':key,
-	'lat':lat,'lon':lon,'nam':nam,'opy':opy,'out':out,'pol':pol,'rad':rad,'res':res,'rxh':rxh,
-	'ter':ter,'tlt':tlt,'txh':txh,'uid':uid,'vbw':vbw}
-	#print (args)
-	print "Calculating '"+nam+"' for "+rad+"km  with "+res+" pixels/degree..."
+# Send job to server. Refer to cloudrf.com/docs/api for API parameters.
+def calculate(args):
+	nam = args.get('nam')
+	args['uid'] = uid
+	args['key'] = key
+	print "Calculating %s for %skm at %s pixels/degree..." % (nam,args.get('rad'),args.get('res'))
 	r = requests.post(apiurl, data=args)
 	if "http" in r.text:
 		download(r.text,nam)
 	else:
 		print r.text
-	
 
 # Download KMZ and launch in Google earth
 def download(file,nam):
@@ -50,16 +46,10 @@ def download(file,nam):
 	os.startfile(localFile) # Launch Google earth (if installed)
 	
 # Open CSV file
-with open('cells.csv', 'rb') as csvfile:
-	csvdata = csv.reader(csvfile, delimiter=',')
-	for row in csvdata:
-		if row[0].isdigit(): # Ignore Header row
-			start_time = time.time() # Stopwatch start
-			calculate(row[0],row[1],row[2],row[3],row[4],row[5],row[6],row[7],row[8],row[9],
-			row[10],row[11],row[12],key,row[13],row[14],row[15],row[16],row[17],row[18],row[19],row[20],row[21],row[22],row[23],row[24],uid,row[25])
-			elapsed = round(time.time() - start_time,1) # Stopwatch stop
-			print "Elapsed time: "+str(elapsed)+"s"
-			time.sleep(delay)
-		
-		
-		
+csvfile = csv.DictReader(open("data.csv"))
+for row in csvfile:
+	start_time = time.time() # Stopwatch start
+	calculate(row)
+	elapsed = round(time.time() - start_time,1) # Stopwatch stop
+	print "Elapsed time: "+str(elapsed)+"s"
+	time.sleep(delay)

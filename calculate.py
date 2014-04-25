@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import requests, csv, subprocess, os, urllib2, time, sys
-# CloudRF API client script Copyright 2013 Farrant Consulting Ltd
+# CloudRF API client script Copyright 2014 Farrant Consulting Ltd
 #
 # Reads in radio transmitter data from data.csv and creates a propagation KMZ for each row
 # Once complete, it will download the KMZ and launch it with Google earth
@@ -8,11 +8,8 @@ import requests, csv, subprocess, os, urllib2, time, sys
 # Before using you must create a CloudRF account and enter your UID and password in the relevant fields below
 # support@cloudrf.com
 
-# ENTER YOUR API KEY AND UID FROM CLOUDRF.COM HERE:
-uid="" # CLOUDRF UID 
-key="" # CLOUDRF API KEY
 apiurl="https://m.cloudrf.com/API/api.php" # Public server 
-delay = 8 # Set to >8 for the public server or 0 if you own your own
+delay = 1 # Set to >8 for the public server or 0 if you own your own
 # DO NOT EDIT BELOW HERE
 
 o = urllib2.build_opener( urllib2.HTTPCookieProcessor()) 
@@ -20,8 +17,6 @@ o = urllib2.build_opener( urllib2.HTTPCookieProcessor())
 # Send job to server. Refer to cloudrf.com/docs/api for API parameters.
 def calculate(args):
 	nam = args.get('nam')
-	args['uid'] = uid
-	args['key'] = key
 	print "Calculating %s for %skm at %s pixels/degree..." % (nam,args.get('rad'),args.get('res'))
 	r = requests.post(apiurl, data=args)
 	if "http" in r.text:
@@ -45,8 +40,13 @@ def download(file,nam):
 	print "Downloaded as "+localFile
 	os.startfile(localFile) # Launch Google earth (if installed)
 	
+	
+if len(sys.argv) == 1:
+	print "ERROR: Need a .csv file\neg. python calculate.py mydata.csv"
+	quit()
+	
 # Open CSV file
-csvfile = csv.DictReader(open("data.csv"))
+csvfile = csv.DictReader(open(sys.argv[1]))
 for row in csvfile:
 	start_time = time.time() # Stopwatch start
 	calculate(row)

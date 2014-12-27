@@ -10,10 +10,10 @@ import csv, subprocess, os, urllib, urllib2, time, sys
 
 # CHANGE THESE SETTINGS
 server="https://web.cloudrf.com" # Public server 
-delay = 4 # Set to >8 for the public server or 0 if you own your own
+delay = 1 # Set to >8 for the public server or 0 if you own your own
 googleearth=0 # Set to 0 to NOT open google earth after a successful calc
 debug=0 # Set to 1 to see RAW parameters pre-send
-domesh=1 # Set to 0 to only process sites. 1 to stitch together into super layer
+domesh=0 # Set to 0 to only process sites. 1 to stitch together into a super layer 'mesh'
 # DO NOT EDIT BELOW HERE!
 
 calcs = []

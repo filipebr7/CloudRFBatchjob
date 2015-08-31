@@ -9,14 +9,14 @@ import csv, subprocess, os, urllib, urllib2, time, sys
 # For help email: support@cloudrf.com
 
 # CHANGE THESE SETTINGS
-server="https://web.cloudrf.com" # Public server 
-delay = 1 # Set to >8 for the public server or 0 if you own your own
+server="https://10.0.0.4" # Public server 
+delay = 0 # Set to >8 for the public server or 0 if you own your own
 googleearth=0 # Set to 0 to NOT open google earth after a successful calc
 debug=0 # Set to 1 to see RAW parameters pre-send
-domesh=0 # Set to 0 to only process sites. 1 to stitch together into a super layer 'mesh'
+domesh=1 # Set to 0 to only process sites. 1 to stitch together into a super layer 'mesh'
 # DO NOT EDIT BELOW HERE!
 
-calcs = []
+networks = []
 uid = ""
 
 o = urllib2.build_opener( urllib2.HTTPCookieProcessor()) 
@@ -25,6 +25,12 @@ o = urllib2.build_opener( urllib2.HTTPCookieProcessor())
 def calculate(args):
 	global uid
 	nam = args.get('nam')
+	net = args.get('net')
+	
+	if net not in networks:
+		networks.append(net)
+		print "Adding network to list: "+net
+		
 	if args.get('uid') > 0:
 		uid = args.get('uid')
 	
@@ -35,16 +41,9 @@ def calculate(args):
 	req = urllib2.Request(server+"/API/api.php", data)
 	r = urllib2.urlopen(req)
 	
-	# Read in response. Hopefully a file http://...
+	# Read in response.
 	result = r.read()
-	if "http" in result:
-		print result
-		calcs.append(result.replace(server+"/users/"+uid+"/",""))
-		
-		# Success! Download KMZ
-		download(result,nam)
-	else:
-		print result
+	print result
 
 # Download KMZ and launch in Google earth
 def download(file,nam):
@@ -65,24 +64,22 @@ def download(file,nam):
 		os.startfile(localFile) 
 	
 #Stitch calcs into super layer (mesh)	
-def mesh(calcs):
+def mesh():
 	global uid
+	global networks
 	# Omit '&kmz=1' to receive a EPSG 3857 PNG and lat/lon bounds
-	meshurl=server+"/API/mesh/mesh.php?uid="+str(uid)+"&name=mesh&kmz=1&calcs="
-	print "\nStitching mesh..."
-	for layer in calcs:
-		meshurl=meshurl+layer.replace(".kmz\n","")+","
+	print networks
 	
-	# Fetch URL with http GET
-	req = urllib2.Request(meshurl)
-	r = urllib2.urlopen(req)
-	result = r.read()
-	if "http" in result:
+	for net in networks:
+		meshurl=server+"/API/mesh/mesh.php?uid="+str(uid)+"&network="+net
+		print meshurl
+		
+		# Fetch URL with http GET
+		req = urllib2.Request(meshurl)
+		r = urllib2.urlopen(req)
+		result = r.read()
 		print result
-		download(result,"mesh")
-	else:
-		print result
-	
+		
 	
 if len(sys.argv) == 1:
 	print "ERROR: Need a .csv file\neg. python calculate.py mydata.csv"
@@ -93,6 +90,7 @@ if not os.path.exists("kmz"):
 		
 # Open CSV file
 csvfile = csv.DictReader(open(sys.argv[1]))
+n=0
 for row in csvfile:
 	# Pause script. Important otherwise server will refuse repeat requests
 	time.sleep(delay)
@@ -102,7 +100,9 @@ for row in csvfile:
 	calculate(row)
 	elapsed = round(time.time() - start_time,1) # Stopwatch stop
 	print "Elapsed: "+str(elapsed)+"s"
+	n=n+1
 	
 
 # Mesh now
-mesh(calcs)
+if domesh:
+	mesh()

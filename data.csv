@@ -1,5 +1,4 @@
-aeg,ant,azi,bw,ber,blue,clh,cli,col,dbm,dis,fbr,fmt,frq,green,gry,hbw,ked,key,lat,lon,mod,nam,nf,opy,out,pm,pol,rad,red,res,rxg,rxh,ter,tlt,txh,txw,uid,vbw
-10,52,90,0,0,0,1,5,10,-110,m,2.15,4,900,0,0,0,0,5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8,-51.883,-59.226,0,GSM_TOWER,0,50,2,1,v,10,0,1200,0,2,15,0,15,1,1,0
-2.15,38,0,0,0,0,1,5,10,-110,m,2.15,4,900,0,0,0,0,5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8,-51.883,-59,0,GSM_HANDSET,0,50,2,1,v,10,0,1200,0,6,15,0,1.5,0.25,1,0
-2.15,38,0,0,0,-100,1,5,7,-100,m,2.15,4,144,-75,0,0,0,5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8,-51.864,-58.67,0,VHF_RADIO_BLUEGREEN,0,50,2,1,v,10,0,1200,0,2,15,0,2,5,1,0
-10,0,45,30,0,0,1,5,10,-110,m,10,4,868,0,0,30,0,5baa61e4c9b93f3f0682250b6cf8331b7ee68fd8,-51.9,-58.398,0,CUSTOM_YAGI_ANTENNA,0,50,2,1,v,10,0,1200,0,6,15,0,10,5,1,30
+aeg,ant,azi,bw,ber,blue,clh,cli,col,dbm,dis,fbr,fmt,frq,green,gry,hbw,ked,key,lat,lon,mod,nam,net,nf,opy,out,pm,pol,rad,red,res,rxg,rxh,ter,tlt,txh,txw,uid,vbw
+3,52,90,0,0,0,1,5,10,-110,m,2.15,4,900,0,0,0,0,,52,-1,0,GSM_TOWER,AAA,0,50,2,1,v,10,0,1200,0,2,15,0,15,1,,0
+3,38,0,0,0,0,1,5,10,-110,m,2.15,4,900,0,0,0,0,,52,-1.01,0,GSM_HANDSET,AAA,0,50,2,1,v,10,0,1200,0,6,15,0,1.5,0.25,,0
+3,0,45,30,0,0,1,5,10,-110,m,10,4,868,0,0,30,0,,52,-1.02,0,CUSTOM_YAGI_ANTENNA,AAA,0,50,2,1,v,10,0,1200,0,6,15,0,10,5,,30

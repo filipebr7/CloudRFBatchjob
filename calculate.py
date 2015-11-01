@@ -1,6 +1,6 @@
 #!/usr/bin/python
-import csv, subprocess, os, urllib, urllib2, time, sys
-# CloudRF API client script Copyright 2014 Farrant Consulting Ltd
+import csv, ssl, subprocess, os, urllib, urllib2, time, sys, random
+# CloudRF API client script Copyright 2015 Farrant Consulting Ltd
 #
 # Reads in radio transmitter data from a CSV files and creates a propagation KMZ for each row
 # Once complete, it will download the KMZ files
@@ -9,23 +9,29 @@ import csv, subprocess, os, urllib, urllib2, time, sys
 # For help email: support@cloudrf.com
 
 # CHANGE THESE SETTINGS
-server="https://10.0.0.4" # Public server 
-delay = 0 # Set to >8 for the public server or 0 if you own your own
+server="https://cloudrf.com" # Public server 
+delay = 1 # Set to >8 for the public server or 0 if you own your own
 googleearth=0 # Set to 0 to NOT open google earth after a successful calc
 debug=0 # Set to 1 to see RAW parameters pre-send
 domesh=1 # Set to 0 to only process sites. 1 to stitch together into a super layer 'mesh'
+download=1 # Set to 0 to keep on the server, 1 to pull down an offline KMZ layer
 # DO NOT EDIT BELOW HERE!
 
 networks = []
 uid = ""
+nonce = random.randint(1,99)
 
 o = urllib2.build_opener( urllib2.HTTPCookieProcessor()) 
+ctx = ssl.create_default_context()
+ctx.check_hostname = False
+ctx.verify_mode = ssl.CERT_NONE
 
 # Send job to server. Refer to cloudrf.com/pages/api for API parameters.
 def calculate(args):
 	global uid
 	nam = args.get('nam')
-	net = args.get('net')
+	net = args.get('net')+"_"+str(nonce) # Add nonce to avoid meshing unwanted legacy layers
+	args['net']=net
 	
 	if net not in networks:
 		networks.append(net)
@@ -39,14 +45,17 @@ def calculate(args):
 	# Build POST request
 	data = urllib.urlencode(args)
 	req = urllib2.Request(server+"/API/api.php", data)
-	r = urllib2.urlopen(req)
+	r = urllib2.urlopen(req, context=ctx)
 	
 	# Read in response.
 	result = r.read()
-	print result
+	if download:
+		downloadKMZ(result,nam)
+		
+	return result
 
 # Download KMZ and launch in Google earth
-def download(file,nam):
+def downloadKMZ(file,nam):
 	f = o.open(file)
 	localFile="kmz\\"+nam+".kmz"
 	response = ""
@@ -68,17 +77,21 @@ def mesh():
 	global uid
 	global networks
 	# Omit '&kmz=1' to receive a EPSG 3857 PNG and lat/lon bounds
-	print networks
+	#print networks
 	
 	for net in networks:
-		meshurl=server+"/API/mesh/mesh.php?uid="+str(uid)+"&network="+net
-		print meshurl
+		meshurl=server+"/API/mesh/mesh.php?uid="+str(uid)+"&network="+net+"&kmz=1" # Knock off KMZ to receive web mercator bounds instead
+		print "Creating mesh for network: "+net+"..."
+		#print meshurl
 		
 		# Fetch URL with http GET
 		req = urllib2.Request(meshurl)
-		r = urllib2.urlopen(req)
+		r = urllib2.urlopen(req, context=ctx)
 		result = r.read()
 		print result
+		if download:
+			downloadKMZ(result,net)
+
 		
 	
 if len(sys.argv) == 1:

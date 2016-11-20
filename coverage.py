@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import csv, ssl, subprocess, os, urllib, urllib2, time, sys, random
-# CloudRF API client script Copyright 2015 Farrant Consulting Ltd
+# CloudRF API client script Copyright 2016 Farrant Consulting Ltd
 #
 # Reads in radio transmitter data from a CSV files and creates a propagation KMZ for each row
 # Once complete, it will download the KMZ files
@@ -22,9 +22,12 @@ uid = ""
 nonce = random.randint(1,99)
 
 o = urllib2.build_opener( urllib2.HTTPCookieProcessor()) 
-ctx = ssl.create_default_context()
-ctx.check_hostname = False
-ctx.verify_mode = ssl.CERT_NONE
+try:
+	ctx = ssl.create_default_context()
+	ctx.check_hostname = False
+	ctx.verify_mode = ssl.CERT_NONE
+except:
+	pass
 
 # Send job to server. Refer to cloudrf.com/pages/api for API parameters.
 def calculate(args):
@@ -45,19 +48,26 @@ def calculate(args):
 	# Build POST request
 	data = urllib.urlencode(args)
 	req = urllib2.Request(server+"/API/api.php", data)
-	r = urllib2.urlopen(req, context=ctx)
+	try:
+		r = urllib2.urlopen(req, context=ctx)
+	except:
+		r = urllib2.urlopen(req)
+
 	
 	# Read in response.
 	result = r.read()
 	if download:
 		downloadKMZ(result,nam)
-		
+	else:
+		print result
+	
 	return result
 
 # Download KMZ and launch in Google earth
 def downloadKMZ(file,nam):
+	print file
 	f = o.open(file)
-	localFile="kmz\\"+nam+".kmz"
+	localFile=os.path.join("kmz",nam+".kmz")
 	response = ""
 	while 1:
 		data = f.read()
@@ -86,7 +96,10 @@ def mesh():
 		
 		# Fetch URL with http GET
 		req = urllib2.Request(meshurl)
-		r = urllib2.urlopen(req, context=ctx)
+		try:
+			r = urllib2.urlopen(req, context=ctx)
+		except:
+			r = urllib2.urlopen(req)
 		result = r.read()
 		print result
 		if download:
